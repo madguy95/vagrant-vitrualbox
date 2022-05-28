@@ -1,0 +1,50 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+IMAGE_NAME = "ubuntu/bionic64"
+NodeCount = 2
+IP_PUB = "10.1.38.18" #*
+IP_PRV = "10.0.39.18" #*
+NETWORK = "public_network"
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config|
+
+  config.vm.provision "shell", path: "bootstrap.sh"
+  # Kubernetes Master Server
+  config.vm.define "kmaster" do |kmaster|
+    kmaster.vm.box = IMAGE_NAME
+    kmaster.vm.hostname = "kmaster.example.com"
+    if IP_PUB != "" then
+      kmaster.vm.network NETWORK, ip: "#{IP_PUB}0"
+    end
+    if IP_PRV != "" then
+      kmaster.vm.network "private_network", ip: "#{IP_PRV}0"
+    end
+    kmaster.vm.provider "virtualbox" do |v|
+      v.name = "kmaster"
+      v.memory = 1024
+      v.cpus = 1
+    end
+  end
+
+
+  # Kubernetes Worker Nodes
+  (1..NodeCount).each do |i|
+    config.vm.define "kworker#{i}" do |workernode|
+      workernode.vm.box = IMAGE_NAME
+      workernode.vm.hostname = "kworker#{i}.example.com"
+      if IP_PUB != "" then
+        workernode.vm.network NETWORK, ip: "#{IP_PUB}#{i}"
+      end
+      if IP_PRV != "" then
+        workernode.vm.network "private_network", ip: "#{IP_PRV}#{i}"
+      end
+      workernode.vm.provider "virtualbox" do |v|
+        v.name = "kworker#{i}"
+        v.memory = 2048
+        v.cpus = 2
+      end
+    end
+  end
+
+end
