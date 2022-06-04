@@ -3,7 +3,9 @@
 Update hosts file
 echo "[TASK 1] Update /etc/hosts file"
 cat >>/etc/hosts<<EOF
-192.168.88.180 kmaster.example.com kmaster
+192.168.88.181 kmaster01
+192.168.88.191 kworker01
+192.168.88.192 kworker02
 EOF
 
 # echo "===== update package ====="
@@ -24,6 +26,9 @@ systemctl restart sshd
 echo "[TASK 12] Set root password"
 echo -e "kubeadmin\nkubeadmin" | passwd root
 #echo "kubeadmin" | passwd --stdin root >/dev/null 2>&1
-
+sudo ip route del default
+sudo ip route add default via 192.168.88.1 dev eth1
+sudo ufw disable
+# sudo ifconfig enp0s3 down
 # Update vagrant user's bashrc file
 echo "export TERM=xterm" >> /etc/bashrc
